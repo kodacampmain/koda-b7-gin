@@ -14,3 +14,13 @@ type UsersUri struct {
 	Id   int    `uri:"id" json:"id"`
 	Slug string `uri:"slug" json:"slug"`
 }
+
+type UsersHeader struct {
+	ContentType string `header:"Content-Type" binding:"required"`
+}
+
+type Employees struct {
+	Id     int    `json:"id"`
+	Name   string `json:"name"`
+	Salary int    `json:"salary"`
+}

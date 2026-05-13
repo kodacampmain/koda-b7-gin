@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/kodacampmain/koda-b7-gin/internal/dto"
+	"github.com/kodacampmain/koda-b7-gin/internal/service"
 )
 
 type IUserService interface {
@@ -16,16 +17,30 @@ type IUserService interface {
 }
 
 type UsersController struct {
-	userService IUserService
+	userService *service.UserService
 }
 
-func NewUsersController(userService IUserService) *UsersController {
+func NewUsersController(userService *service.UserService) *UsersController {
 	return &UsersController{
 		userService: userService,
 	}
 }
 
 func (u *UsersController) Post(ctx *gin.Context) {
+	// var header dto.UsersHeader
+	// if err := ctx.ShouldBindWith(&header, binding.Header); err != nil {
+	// 	log.Println("Error: ", err.Error())
+	// 	ctx.JSON(http.StatusInternalServerError, dto.Response{
+	// 		Message: "Error",
+	// 		Data:    nil,
+	// 		Success: false,
+	// 		Error:   "Internal Server Error",
+	// 	})
+	// 	return
+	// }
+	contentType := ctx.GetHeader("Content-Type")
+	customHeader := ctx.GetHeader("X-Koda-X")
+	// log.Println(contentType)
 	var body dto.UsersBody
 	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
 		// apakah error validasi?
@@ -69,6 +84,8 @@ func (u *UsersController) Post(ctx *gin.Context) {
 		return
 	}
 
+	log.Println("content-type: ", contentType)
+	log.Println("x-koda-x: ", customHeader)
 	u.userService.PrintUser(body)
 	// kirim response sukses
 	ctx.JSON(http.StatusOK, dto.Response{
@@ -80,21 +97,45 @@ func (u *UsersController) Post(ctx *gin.Context) {
 }
 
 func (u *UsersController) Put(ctx *gin.Context) {
-	var uri dto.UsersUri
-	if err := ctx.ShouldBindUri(&uri); err != nil {
-		log.Println("Error: ", err.Error())
+	// var uri dto.UsersUri
+	// if err := ctx.ShouldBindUri(&uri); err != nil {
+	// 	log.Println("Error: ", err.Error())
+	// 	ctx.JSON(http.StatusInternalServerError, dto.Response{
+	// 		Message: "Error",
+	// 		Data:    nil,
+	// 		Success: false,
+	// 		Error:   "Internal Server Error",
+	// 	})
+	// 	return
+	// }
+	id := ctx.Param("id")
+	slug := ctx.Param("slug")
+	ctx.JSON(http.StatusOK, dto.Response{
+		Message: "OK",
+		Data: gin.H{
+			"id":   id,
+			"slug": slug,
+		},
+		Success: true,
+		Error:   "",
+	})
+}
+
+func (u *UsersController) GetAll(ctx *gin.Context) {
+	// pengambilan filter/search/paginasi
+	employees, err := u.userService.GetEmployees(ctx.Request.Context())
+	if err != nil {
+		log.Println(err.Error())
 		ctx.JSON(http.StatusInternalServerError, dto.Response{
-			Message: "Error",
-			Data:    nil,
+			Message: "Internal Error",
 			Success: false,
-			Error:   "Internal Server Error",
+			Error:   "internal server error",
 		})
 		return
 	}
 	ctx.JSON(http.StatusOK, dto.Response{
+		Data:    employees,
 		Message: "OK",
-		Data:    uri,
 		Success: true,
-		Error:   "",
 	})
 }
