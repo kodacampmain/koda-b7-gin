@@ -18,6 +18,7 @@ func InitRouter(router *gin.Engine, db *pgxpool.Pool) {
 	RegisterRootRouter(router)
 	RegisterUserRouter(router, db)
 	RegisterMovieRouter(router)
+	RegisterAuthRouter(router, db)
 
 	router.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, dto.Response{

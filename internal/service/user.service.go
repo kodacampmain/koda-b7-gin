@@ -48,3 +48,28 @@ func (u *UserService) GetEmployees(ctx context.Context) ([]dto.Employees, error)
 	}
 	return employees, nil
 }
+
+func (u *UserService) NewEmployee(ctx context.Context, employee dto.NewEmployee) (dto.Employees, error) {
+	result, err := u.userRepo.CreateNewEmployee(ctx, employee)
+	if err != nil {
+		return dto.Employees{}, err
+	}
+	newEmployee := dto.Employees{
+		Id:   result.Id,
+		Name: result.Name,
+	}
+	return newEmployee, nil
+}
+
+func (u *UserService) GetUserProfile(ctx context.Context, id int) (dto.User, error) {
+	res, err := u.userRepo.FetchUserProfile(ctx, id)
+	if err != nil {
+		return dto.User{}, err
+	}
+	return dto.User{
+		Id:        res.Id,
+		Username:  res.Username,
+		CreatedAt: res.CreatedAt,
+		UpdatedAt: res.UpdatedAt,
+	}, nil
+}

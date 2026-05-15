@@ -1,6 +1,8 @@
 package dto
 
-import "time"
+import (
+	"time"
+)
 
 type UsersBody struct {
 	// key datatype `tag`
@@ -22,5 +24,15 @@ type UsersHeader struct {
 type Employees struct {
 	Id     int    `json:"id"`
 	Name   string `json:"name"`
+	Salary int    `json:"salary,omitempty"`
+}
+
+type NewEmployee struct {
+	Name   string `json:"employee_name"`
+	DepId  int    `json:"department_id"`
 	Salary int    `json:"salary"`
+}
+
+type BulkNewEmployee struct {
+	NewEmployee []NewEmployee
 }

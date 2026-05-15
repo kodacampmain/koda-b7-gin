@@ -19,6 +19,10 @@ func RegisterUserRouter(router *gin.Engine, db *pgxpool.Pool) {
 
 	userRouter.GET("", usersController.GetAll)
 	userRouter.POST("", middleware.MyCustomMiddleware, usersController.Post)
+	userRouter.POST("/employee", usersController.Add)
 	// params
 	userRouter.PUT("/:id/:slug", usersController.Put)
+
+	// protected
+	userRouter.GET("/profile", middleware.VerifyToken, usersController.GetProfile)
 }

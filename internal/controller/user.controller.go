@@ -1,14 +1,17 @@
 package controller
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/jackc/pgx/v5"
 	"github.com/kodacampmain/koda-b7-gin/internal/dto"
 	"github.com/kodacampmain/koda-b7-gin/internal/service"
+	"github.com/kodacampmain/koda-b7-gin/pkg"
 )
 
 type IUserService interface {
@@ -137,5 +140,62 @@ func (u *UsersController) GetAll(ctx *gin.Context) {
 		Data:    employees,
 		Message: "OK",
 		Success: true,
+	})
+}
+
+func (u *UsersController) Add(ctx *gin.Context) {
+	var body dto.NewEmployee
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, dto.Response{
+			Message: "Internal Error",
+			Success: false,
+			Error:   "internal server error",
+		})
+		return
+	}
+	res, err := u.userService.NewEmployee(ctx.Request.Context(), body)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Println(err.Error())
+			ctx.JSON(http.StatusBadRequest, dto.Response{
+				Message: "Bad Request",
+				Success: false,
+				Error:   "bad payload",
+			})
+			return
+		}
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, dto.Response{
+			Message: "Internal Error",
+			Success: false,
+			Error:   "internal server error",
+		})
+		return
+	}
+	ctx.JSON(http.StatusCreated, dto.Response{
+		Message: "Employee added",
+		Success: true,
+		Data:    res,
+	})
+}
+
+func (u *UsersController) GetProfile(ctx *gin.Context) {
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+	user, err := u.userService.GetUserProfile(ctx.Request.Context(), claims.Id)
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusInternalServerError, dto.Response{
+			Message: "Internal Error",
+			Success: false,
+			Error:   "internal server error",
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, dto.Response{
+		Message: "OK",
+		Success: true,
+		Data:    user,
 	})
 }
